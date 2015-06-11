@@ -28,13 +28,15 @@ namespace EulersNumber.Core
             return Algorithm(Convert.ToUInt32(states["-p"]));
         }
 
-        private decimal Algorithm(ulong n)
+        private decimal Algorithm(long n)
         {
             ThreadPool.SetMaxThreads(5, 5);
-            for (ulong i = 1; i < n; ++i)
-                ThreadPool.QueueUserWorkItem(new WaitCallback(Iteration), i);
+            for (long i = 0; i < n; ++i)
+                Iteration(i);
+               
+                //ThreadPool.QueueUserWorkItem(new WaitCallback(Iteration), i);
 
-            Thread.Sleep(1500);
+            //Thread.Sleep(2000);
             return total;
         }
 
@@ -42,16 +44,18 @@ namespace EulersNumber.Core
 
         private void Iteration(object p)
         {
-            ulong k = (ulong)p;
-            Console.WriteLine(total);
+            long k = (long)p;
+            //Console.WriteLine(total);
             lock(lockObject)
             {
-                total += (3 - 4 * (k * k)) / Factorial(2 * k + 1);
+                var add = (decimal)(3 - 4 * (k * k)) / Factorial(2 * k + 1);
+                Console.WriteLine(add);
+                total += add;
             }
 
         }
 
-        private ulong Factorial(ulong k)
+        private long Factorial(long k)
         {
             if (k == 1)
                 return 1;
@@ -61,5 +65,6 @@ namespace EulersNumber.Core
 
         private readonly Dictionary<string, string> states;
         private readonly Object lockObject = new Object();
+        private const string DEFAULT_OUTPUT = "output.txt";
     }
 }

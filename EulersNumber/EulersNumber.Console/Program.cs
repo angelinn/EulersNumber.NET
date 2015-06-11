@@ -13,7 +13,7 @@ namespace EulersNumber.Console
         {
             string[] inp = new string[]
             {
-                "-p 20",
+                "-p 50",
                 "-t 3",
                 "-o output.txt",
                 "-q"
