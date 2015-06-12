@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EulersNumber.Core;
+using System.Numerics;
 
 namespace EulersNumber.Console
 {
@@ -13,8 +14,8 @@ namespace EulersNumber.Console
         {
             string[] inp = new string[]
             {
-                "-p 50",
-                "-t 3",
+                "-p 500",
+                "-t 4",
                 "-o output.txt",
                 "-q"
             };

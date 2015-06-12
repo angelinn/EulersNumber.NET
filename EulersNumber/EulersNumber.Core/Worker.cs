@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Numerics;
 
 namespace EulersNumber.Core
 {
     public class Worker
     {
+        public BigDecimal Total { get; private set; }
+
         public Worker(string[] input)
         {
             try
@@ -23,48 +26,54 @@ namespace EulersNumber.Core
         }
 
 
-        public decimal Calculate()
+        public BigDecimal Calculate()
         {
-            return Algorithm(Convert.ToUInt32(states["-p"]));
+            return Algorithm(Convert.ToInt32(states["-p"]));
         }
 
-        private decimal Algorithm(long n)
+        private BigDecimal Algorithm(BigDecimal n)
         {
-            ThreadPool.SetMaxThreads(5, 5);
-            for (long i = 0; i < n; ++i)
-                Iteration(i);
-               
-                //ThreadPool.QueueUserWorkItem(new WaitCallback(Iteration), i);
+            int max = Convert.ToInt32(states["-t"]);
+            ThreadPool.SetMaxThreads(max, max);
 
-            //Thread.Sleep(2000);
-            return total;
+            using (countdownEvent = new CountdownEvent((int)n))
+            {
+                for (BigDecimal i = 0; i < n; ++i)
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(Iteration), i);
+
+                countdownEvent.Wait();
+            }
+            //Iteration(i);
+            
+            return Total;
         }
-
-        private decimal total;
 
         private void Iteration(object p)
         {
-            long k = (long)p;
-            //Console.WriteLine(total);
+            BigDecimal k = (BigDecimal)p;
+
             lock(lockObject)
             {
-                var add = (decimal)(3 - 4 * (k * k)) / Factorial(2 * k + 1);
-                Console.WriteLine(add);
-                total += add;
+                Total += (3 - 4 * (k * k)) / Factorial(2 * k + 1);
             }
-
+            countdownEvent.Signal();
         }
 
-        private long Factorial(long k)
+        private BigDecimal Factorial(BigDecimal k) 
         {
-            if (k == 1)
+            if (k <= 1)
                 return 1;
 
-            return k * Factorial(k - 1);
+            BigDecimal result = 1;
+            for (BigDecimal i = 2; i <= k; ++i)
+                result = result * i;
+
+            return result;
         }
 
         private readonly Dictionary<string, string> states;
         private readonly Object lockObject = new Object();
-        private const string DEFAULT_OUTPUT = "output.txt";
+        private CountdownEvent countdownEvent;
+        private const string DEFAULT_OUTPUT_FILE = "output.txt";
     }
 }
