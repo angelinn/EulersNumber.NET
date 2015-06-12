@@ -14,7 +14,7 @@ namespace EulersNumber.Console
         {
             string[] inp = new string[]
             {
-                "-p 500",
+                "-p 1000",
                 "-t 4",
                 "-o output.txt",
                 "-q"

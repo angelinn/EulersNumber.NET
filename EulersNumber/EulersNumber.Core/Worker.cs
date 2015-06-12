@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Numerics;
+using System.Diagnostics;
 
 namespace EulersNumber.Core
 {
@@ -28,14 +29,16 @@ namespace EulersNumber.Core
 
         public BigDecimal Calculate()
         {
+            int maxThreads = Convert.ToInt32(states["-t"]);
+            ThreadPool.SetMaxThreads(maxThreads, maxThreads);
+
+
             return Algorithm(Convert.ToInt32(states["-p"]));
         }
 
         private BigDecimal Algorithm(BigDecimal n)
         {
-            int max = Convert.ToInt32(states["-t"]);
-            ThreadPool.SetMaxThreads(max, max);
-
+            Stopwatch watch = Stopwatch.StartNew();
             using (countdownEvent = new CountdownEvent((int)n))
             {
                 for (BigDecimal i = 0; i < n; ++i)
@@ -43,20 +46,28 @@ namespace EulersNumber.Core
 
                 countdownEvent.Wait();
             }
+
             //Iteration(i);
-            
+            watch.Stop();
+            Console.WriteLine(watch.ElapsedMilliseconds + " Miliseconds");
             return Total;
         }
 
         private void Iteration(object p)
         {
+            //Console.WriteLine(Thread.CurrentThread.ManagedThreadId + " started.");
             BigDecimal k = (BigDecimal)p;
-
+            
             lock(lockObject)
             {
                 Total += (3 - 4 * (k * k)) / Factorial(2 * k + 1);
             }
             countdownEvent.Signal();
+
+            //Console.WriteLine(Thread.CurrentThread.ManagedThreadId + " finished.");
+            //int available, s;
+            //ThreadPool.GetAvailableThreads(out available, out s);
+
         }
 
         private BigDecimal Factorial(BigDecimal k) 
@@ -71,6 +82,7 @@ namespace EulersNumber.Core
             return result;
         }
 
+        private int currentThreads;
         private readonly Dictionary<string, string> states;
         private readonly Object lockObject = new Object();
         private CountdownEvent countdownEvent;
