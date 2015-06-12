@@ -39,31 +39,32 @@ namespace EulersNumber.Core
             int maxThreads = Convert.ToInt32(states["-t"]);
 
             Thread[] threads = new Thread[maxThreads];
-            int interval = n / maxThreads;
 
-            //for (int i = 0; i < maxThreads; ++i)
-            //    threads[i] = new Thread(new ThreadStart(() => ));
+            int step = n / maxThreads;
+            int start = 0;
+            int end = step;
 
+            using (countdown = new CountdownEvent(maxThreads))
+            { 
+                for (int i = 0; i < maxThreads; ++i)
+                {
+                    threads[i] = new Thread(new ThreadStart(() => Iteration(start, end)));
+                    threads[i].Start();
 
-            using (countdown = new CountdownEvent(4))
-            {
-                foreach (Thread thread in threads)
-                    thread.Start();
+                    start += step + 1;
+
+                    if (i == maxThreads - 2)
+                        end = n;
+                    else
+                        end += step;
+                }
 
                 countdown.Wait();
             }
-            //for (int i = 0; i < n;)
-            //{
-            //    if (currentThreads < maxThreads)
-            //    {
-            //        ++currentThreads;
-            //        Thread thread = new Thread(new ThreadStart(() => Iteration(i)));
-            //        thread.Start();
-            //        ++i;
-            //    }
-            //}
+
             watch.Stop();
             Console.WriteLine(watch.ElapsedMilliseconds + " Miliseconds");
+
             return Total;
         }
         
@@ -73,7 +74,6 @@ namespace EulersNumber.Core
             for (int i = a; i < b; ++i)
             {
                 Console.WriteLine(i);
-                
                 res += (3 - 4 * (i * i)) / Factorial(2 * i + 1);
             }
 
@@ -82,13 +82,6 @@ namespace EulersNumber.Core
                 Total += res;
             }
             countdown.Signal();
-
-            //Console.WriteLine(currentThreads + " " + k);
-            //lock (lockObject)
-            //{
-            //    Total += (3 - 4 * (k * k)) / Factorial(2 * k + 1);
-            //    --currentThreads;
-            //}
         }
 
         private BigDecimal Factorial(BigDecimal k) 
@@ -102,18 +95,18 @@ namespace EulersNumber.Core
             BigDecimal result = 1;
             for (BigDecimal i = 2; i <= k; ++i)
             {
-                for (BigDecimal j = i; j > 0; --j)
-                {
-                    if(factorialCache.ContainsKey(j))
-                    {
-                        i = j + 1;
-                        result = factorialCache[j];
-                        break;
-                    }
-                }
+                //for (BigDecimal j = i; j > 0; --j)
+                //{
+                //    if(factorialCache.ContainsKey(j))
+                //    {
+                //        i = j + 1;
+                //        result = factorialCache[j];
+                //        break;
+                //    }
+                //}
                 result = result * i;
             }
-            factorialCache[k] = result;
+            //factorialCache[k] = result;
             return result;
         }
 
