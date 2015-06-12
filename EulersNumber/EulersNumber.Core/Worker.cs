@@ -4,14 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Numerics;
+//using System.Numerics;
 using System.Diagnostics;
+using System.Numerics;
 
 namespace EulersNumber.Core
 {
     public class Worker
     {
-        public BigDecimal Total { get; private set; }
+        public BigDecimal Total;
 
         public Worker(string[] input)
         {
@@ -29,45 +30,65 @@ namespace EulersNumber.Core
 
         public BigDecimal Calculate()
         {
-            int maxThreads = Convert.ToInt32(states["-t"]);
-            ThreadPool.SetMaxThreads(maxThreads, maxThreads);
-
-
             return Algorithm(Convert.ToInt32(states["-p"]));
         }
 
-        private BigDecimal Algorithm(BigDecimal n)
+        private BigDecimal Algorithm(int n)
         {
             Stopwatch watch = Stopwatch.StartNew();
-            using (countdownEvent = new CountdownEvent((int)n))
+            int maxThreads = Convert.ToInt32(states["-t"]);
+
+            Thread[] threads = new Thread[maxThreads];
+            int interval = n / maxThreads;
+
+            //for (int i = 0; i < maxThreads; ++i)
+            //    threads[i] = new Thread(new ThreadStart(() => ));
+
+
+            using (countdown = new CountdownEvent(4))
             {
-                for (BigDecimal i = 0; i < n; ++i)
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(Iteration), i);
+                foreach (Thread thread in threads)
+                    thread.Start();
 
-                countdownEvent.Wait();
+                countdown.Wait();
             }
-
-            //Iteration(i);
+            //for (int i = 0; i < n;)
+            //{
+            //    if (currentThreads < maxThreads)
+            //    {
+            //        ++currentThreads;
+            //        Thread thread = new Thread(new ThreadStart(() => Iteration(i)));
+            //        thread.Start();
+            //        ++i;
+            //    }
+            //}
             watch.Stop();
             Console.WriteLine(watch.ElapsedMilliseconds + " Miliseconds");
             return Total;
         }
-
-        private void Iteration(object p)
+        
+        private void Iteration(int a, int b)
         {
-            //Console.WriteLine(Thread.CurrentThread.ManagedThreadId + " started.");
-            BigDecimal k = (BigDecimal)p;
-            
-            lock(lockObject)
+            BigDecimal res = 0;
+            for (int i = a; i < b; ++i)
             {
-                Total += (3 - 4 * (k * k)) / Factorial(2 * k + 1);
+                Console.WriteLine(i);
+                
+                res += (3 - 4 * (i * i)) / Factorial(2 * i + 1);
             }
-            countdownEvent.Signal();
 
-            //Console.WriteLine(Thread.CurrentThread.ManagedThreadId + " finished.");
-            //int available, s;
-            //ThreadPool.GetAvailableThreads(out available, out s);
+            lock (lockObject)
+            {
+                Total += res;
+            }
+            countdown.Signal();
 
+            //Console.WriteLine(currentThreads + " " + k);
+            //lock (lockObject)
+            //{
+            //    Total += (3 - 4 * (k * k)) / Factorial(2 * k + 1);
+            //    --currentThreads;
+            //}
         }
 
         private BigDecimal Factorial(BigDecimal k) 
@@ -75,17 +96,31 @@ namespace EulersNumber.Core
             if (k <= 1)
                 return 1;
 
+            if (factorialCache.ContainsKey(k))
+                return factorialCache[k];
+
             BigDecimal result = 1;
             for (BigDecimal i = 2; i <= k; ++i)
+            {
+                for (BigDecimal j = i; j > 0; --j)
+                {
+                    if(factorialCache.ContainsKey(j))
+                    {
+                        i = j + 1;
+                        result = factorialCache[j];
+                        break;
+                    }
+                }
                 result = result * i;
-
+            }
+            factorialCache[k] = result;
             return result;
         }
 
-        private int currentThreads;
         private readonly Dictionary<string, string> states;
+        private Dictionary<BigDecimal, BigDecimal> factorialCache = new Dictionary<BigDecimal, BigDecimal>();
         private readonly Object lockObject = new Object();
-        private CountdownEvent countdownEvent;
+        private CountdownEvent countdown;
         private const string DEFAULT_OUTPUT_FILE = "output.txt";
     }
 }

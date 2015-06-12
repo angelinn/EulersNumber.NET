@@ -11,17 +11,14 @@ namespace EulersNumber.Core
             Dictionary<string, string> states = new Dictionary<string, string>();
             FillStates(states);
 
-            List<List<string>> splitted = new List<List<string>>();
-
-            foreach (string str in input)
-                splitted.Add(new List<string>(str.Split(new char[] { ' ' })));
-
-            foreach (List<string> pair in splitted)
-                states[pair.First()] = pair.Last();
+            for (int i = 0; i < input.Length; ++i)
+                if (i % 2 == 0)
+                    states[input[i]] = String.Empty;
+                else
+                    states[input[i - 1]] = input[i];
 
             return states;
         }
-
 
         private static void FillStates(Dictionary<string, string> states)
         {
