@@ -15,14 +15,14 @@ namespace EulersNumber.Console
             string[] inp = new string[]
             {
                 "-p",
-                "1000",
+                "2000",
                 "-t",
-                "6",
+                "4",
                 "-o",
                 "output.txt",
                 "-q"
             };
-            Worker worker = new Worker(inp);
+            Worker worker = new Worker(args);
             var s = worker.Calculate();
 
             System.Console.WriteLine(s);

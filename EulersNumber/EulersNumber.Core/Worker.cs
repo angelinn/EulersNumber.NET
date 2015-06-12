@@ -85,6 +85,7 @@ namespace EulersNumber.Core
             for (int i = a; i < b; ++i)
             {
                 Console.WriteLine(i);
+
                 res += (3 - 4 * (i * i)) / Factorial(2 * i + 1);
             }
 
@@ -104,20 +105,26 @@ namespace EulersNumber.Core
                 return factorialCache[k];
 
             BigDecimal result = 1;
+            bool wasIn = false;
+
             for (BigDecimal i = 2; i <= k; ++i)
             {
-                //for (BigDecimal j = i; j > 0; --j)
-                //{
-                //    if(factorialCache.ContainsKey(j))
-                //    {
-                //        i = j + 1;
-                //        result = factorialCache[j];
-                //        break;
-                //    }
-                //}
+                if (!wasIn)
+                {
+                    for (BigDecimal j = k; j > 0; --j)
+                    {
+                        if (factorialCache.ContainsKey(j))
+                        {
+                            wasIn = true;
+                            i = j + 1;
+                            result = factorialCache[j];
+                            break;
+                        }
+                    }
+                }
                 result = result * i;
             }
-            //factorialCache[k] = result;
+            factorialCache[k] = result;
             return result;
         }
 
