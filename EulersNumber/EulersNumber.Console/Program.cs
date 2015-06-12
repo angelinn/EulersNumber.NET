@@ -17,7 +17,7 @@ namespace EulersNumber.Console
                 "-p",
                 "1000",
                 "-t",
-                "4",
+                "6",
                 "-o",
                 "output.txt",
                 "-q"

@@ -35,7 +35,6 @@ namespace EulersNumber.Core
 
         private BigDecimal Algorithm(int n)
         {
-            Stopwatch watch = Stopwatch.StartNew();
             int maxThreads = Convert.ToInt32(states["-t"]);
 
             Thread[] threads = new Thread[maxThreads];
@@ -43,33 +42,45 @@ namespace EulersNumber.Core
             int step = n / maxThreads;
             int start = 0;
             int end = step;
+            Interval[] intervals = new Interval[maxThreads];
 
+
+            for (int i = 0; i < maxThreads; ++i)
+            {
+                threads[i] = new Thread(new ParameterizedThreadStart(Iteration));
+                intervals[i] = new Interval { a = start, b = end };
+
+                start += step + 1;
+
+                if (i == maxThreads - 2)
+                    end = n;
+                else
+                    end += step;
+            }
+
+
+            Stopwatch watch = Stopwatch.StartNew();
             using (countdown = new CountdownEvent(maxThreads))
             { 
                 for (int i = 0; i < maxThreads; ++i)
-                {
-                    threads[i] = new Thread(new ThreadStart(() => Iteration(start, end)));
-                    threads[i].Start();
-
-                    start += step + 1;
-
-                    if (i == maxThreads - 2)
-                        end = n;
-                    else
-                        end += step;
-                }
+                    threads[i].Start(intervals[i]);
 
                 countdown.Wait();
             }
 
             watch.Stop();
+           
             Console.WriteLine(watch.ElapsedMilliseconds + " Miliseconds");
 
             return Total;
         }
         
-        private void Iteration(int a, int b)
+        private void Iteration(object par)
         {
+            Interval interval = (Interval)par;
+            int a = interval.a;
+            int b = interval.b;
+
             BigDecimal res = 0;
             for (int i = a; i < b; ++i)
             {
@@ -108,6 +119,12 @@ namespace EulersNumber.Core
             }
             //factorialCache[k] = result;
             return result;
+        }
+
+        private struct Interval
+        {
+            public int a { get; set; }
+            public int b { get; set; }
         }
 
         private readonly Dictionary<string, string> states;
