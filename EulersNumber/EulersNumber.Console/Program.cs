@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EulersNumber.Core;
 using System.Numerics;
+using System.IO;
 
 namespace EulersNumber.Console
 {
@@ -12,20 +13,23 @@ namespace EulersNumber.Console
     {
         public static void Main(string[] args)
         {
+#if DEBUG
             string[] inp = new string[]
             {
                 "-p",
-                "2000",
+                "5000",
                 "-t",
-                "4",
+                "6",
                 "-o",
                 "output.txt",
-                "-q"
+                "-q false"
             };
+            Worker worker = new Worker(inp);
+#else
             Worker worker = new Worker(args);
-            var s = worker.Calculate();
+#endif
 
-            System.Console.WriteLine(s);
+            var s = worker.Calculate();
         }
     }
 }

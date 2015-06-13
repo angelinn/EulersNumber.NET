@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 //using System.Numerics;
 using System.Diagnostics;
 using System.Numerics;
+using System.IO;
 
 namespace EulersNumber.Core
 {
@@ -35,6 +36,7 @@ namespace EulersNumber.Core
 
         private BigDecimal Algorithm(int n)
         {
+            bool quiet = (states["-q"] == String.Empty) ? false : Convert.ToBoolean(states["-q"]);
             int maxThreads = Convert.ToInt32(states["-t"]);
 
             Thread[] threads = new Thread[maxThreads];
@@ -58,19 +60,29 @@ namespace EulersNumber.Core
                     end += step;
             }
 
+            if (!quiet)
+                Console.WriteLine(String.Format("Starting {0} elements with {1} threads..", states["-p"], states["-t"]));
 
             Stopwatch watch = Stopwatch.StartNew();
             using (countdown = new CountdownEvent(maxThreads))
-            { 
+            {
                 for (int i = 0; i < maxThreads; ++i)
+                {
+                    if (!quiet)
+                        Console.WriteLine(String.Format("Starting thread {0} in [{1}, {2}] ..", i, intervals[i].a, intervals[i].b));
+
                     threads[i].Start(intervals[i]);
+                }
 
                 countdown.Wait();
             }
 
             watch.Stop();
-           
-            Console.WriteLine(watch.ElapsedMilliseconds + " Miliseconds");
+
+            if (!quiet)
+                Console.WriteLine(watch.ElapsedMilliseconds + " Miliseconds");
+
+            WriteToFile(states["-o"] == String.Empty ? DEFAULT_OUTPUT_FILE : states["-o"], Total, watch.ElapsedMilliseconds);
 
             return Total;
         }
@@ -83,11 +95,7 @@ namespace EulersNumber.Core
 
             BigDecimal res = 0;
             for (int i = a; i < b; ++i)
-            {
-                Console.WriteLine(i);
-
                 res += (3 - 4 * (i * i)) / Factorial(2 * i + 1);
-            }
 
             lock (lockObject)
             {
@@ -126,6 +134,17 @@ namespace EulersNumber.Core
             }
             factorialCache[k] = result;
             return result;
+        }
+
+        private void WriteToFile(string fileName, BigDecimal target, long ms)
+        {
+            using (FileStream stream = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write))
+            using (StreamWriter writer = new StreamWriter(stream))
+            {
+                writer.WriteLine(target);
+                writer.WriteLine
+                    (String.Format("Using {0} threads, the execution of {1} elements took {2} ms.", states["-t"], states["-p"], ms));
+            }
         }
 
         private struct Interval
